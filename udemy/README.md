@@ -1,5 +1,5 @@
 
-M2 Mac の場合docker build時に以下オプションを指定する
+ARM(M2 Mac)の場合 docker build 時に以下オプションを指定する
 ```
 --platform linux/amd64
 ```
