@@ -1,0 +1,13 @@
+docker run \
+  -e MONGODB_USERNAME="user" \
+  -e MONGODB_PASSWORD="welcome" \
+  -e MONGODB_HOSTS="host.docker.internal:56105" \
+  -e MONGODB_DATABASE="weblog" \
+  -d \
+  -p 8888:3000 \
+  weblog-app:v1.0.0
+
+# minikubeの場合dockerコンテナ→Serviceに直接通信できない
+https://zenn.dev/sugasuga/articles/08c4f3b1060862
+# Docker Desktop for Macで起動したコンテナからホストPCへの通信
+https://qiita.com/Asayu123/items/ccfe4ccfc417ce57f445
