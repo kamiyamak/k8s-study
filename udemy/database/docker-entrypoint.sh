@@ -46,6 +46,18 @@ stop_mongod() {
     mongod --shutdown
 }
 
+wait_name_resolve() {
+    while true
+    do
+        ping "${HOSTNAME}.${SERVICE_NAME}" -c 1 >> /dev/null
+        if [ $? = 0 ]; then
+            break;
+        fi
+        echo "Waiting for connecting to ${HOSTNAME}.${SERVICE_NAME} ..."
+        sleep 2
+    done
+}
+
 if [ ! -e ${INIT_FLAG_FILE} ]; then
     echo
     echo "--- Initialize MongoDB ---"
@@ -54,6 +66,10 @@ if [ ! -e ${INIT_FLAG_FILE} ]; then
     create_user
     create_initialize_flag
     stop_mongod
+fi
+
+if ["$SERVICE_NAME"]; then
+    wait_name_resolve
 fi
 
 exec "$@"

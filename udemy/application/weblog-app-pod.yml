@@ -16,8 +16,8 @@ data:
   keyfile: a1I3WmVWay9ocHF3V3B6cmFkYnJiYlhtSDltQ2k1MmUwRkVYcU1LR0JQdCswM3ROQVFhckpUSllhamR3WWthUmswNVh0K3BrWFVzZEYya0ptZHpMbHd2L2pYR2ZHdnpaOS9CU0NlT28yb2VTNUY2WVNSUU1SR25VMkx2eUl5SVBvMW5JemVGbHJSWGFaRjZMSWZBYzJKZlNGaWxRay94dGV1Y2sxNHNSdjVaOE5oVFl4ZlZaeFdCRS8reDVCQ3l3K2tUb0t6S01TNUM5a1dCWENZNzR6Ynl1UTduWEtmZnRPVmhldGlRaXpBNzBYQnhzNXlvMVpKQ2cyYVFnTnU3V2U1NGRSdmlFclczZURyZjlqdFhWLzFER3RrYkZiRC9OYzJHMWUzNUJrQVdIV3R3a2lscUR3TkE2VmdmbkQ4OUNmYTJGeWtuamNEeWtYeEp2ZGVvTGUrZ2RhZG9UMTRrcTloTFRTM1ZabEZsWFZTcDJ5K2Qrc2lLL0RHN0c2cFMzdStacE9GNGNtVnJDMk15VmROUHpGWWxzeXJ4a2wyNS9vUnk1eHU3TVdvSnRZcFI2SkZxbzhDMkZJeUc0WFlEZitPcTBZSVZhVmNMZGovd3JUNldGNjZOYS9zMG0vQmhmbDhCNEpqR2Y1dndEalZqTGRobXpTVlZBdjVYcDBOVDZYVlRudzJ5VzgvZkp3TVgveDVUaUc5Z1V2L2FmNFpDZjFBRXhiOWQ3THBmTTQ5elIweEVQVXduaXMvVk1jVEEwNVZDcEUvNTFHWHNWYXRKUEZnSlhSRjhWS3BuMFVqS0Y0bk50aDVOZXFhZjJINEgzSWwxVGp1OVVxN1dBYzJpMnBjRXZIdG5PeExhUXNmVXlOVHBiUVkrOWhRSlppSTFKaHJHTHJGOEM1QmMrVTlGWXkyTUo4WjlFdnE1Z3R3MlJaczViRkhjRXVYUW1rbERvY3JSLzFadXI3WjlkTitTOUFHOHg3M0RUdCtrYlFwdWhYb29LRnhCeTRwU2wzTXZBNW03Y2NDM3FidDhCTytGMlV4czlHcC84VGY0T05xQ0FFejVzZWdVWlViOHV0VVZJTXNRL3pwdklkVG5oKzJUdld3RHR2di9TWTdRNzUyVGFnK090QUFxREtBS2Y4SjBDNGxJSHJQS3UxNjVpK054b2E3ME1LTDVQR3htQVRvYUs3Yzg5SWN4R0NETU5vaGZDSm9wck5xQVlDaWx2UUxzak94Q3Z6OFpuZ0RjaWltVEdnUmdwSTBFdFVYYi90VENHLy8ra0VvMWZPNXR3dHRiNkR5WmpINFFzYnFDekNvQmVXZHpRUjJpYW5zclNyOGlVQi85V0YxWHVxSUo3S3ZUUgo=
 
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: nodeapp
   namespace: default
@@ -25,26 +25,62 @@ metadata:
     app: weblog
     type: application
 spec:
-  containers:
-  - name: node
-    image: weblog-app:v1.0.0
-    imagePullPolicy: Never
-    ports:
-    - containerPort: 3000
-    env:
-    - name: "MONGODB_USERNAME"
-      valueFrom:
-        secretKeyRef:
-          name: mongo-secret
-          key: weblog_username
-    - name: "MONGODB_PASSWORD"
-      valueFrom:
-        secretKeyRef:
-          name: mongo-secret
-          key: weblog_password
-    - name: "MONGODB_HOSTS"
-      value: "mongo-0.db-svc:27017,mongo-1.db-svc:27017,mongo-2.db-svc:27017,"
-    - name: "MONGODB_DATABASE"
-      value: "weblog"
-    - name: "MONGODB_REPLICASET"
-      value: "rs0"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: weblog
+      type: application
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  revisionHistoryLimit: 14
+  template:
+    metadata:
+      name: nodeapp
+      namespace: default
+      labels:
+        app: weblog
+        type: application
+    spec:
+      containers:
+      - name: node
+        image: weblog-app:v1.0.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        env:
+        - name: "MONGODB_USERNAME"
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: weblog_username
+        - name: "MONGODB_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: weblog_password
+        - name: "MONGODB_HOSTS"
+          value: "mongo-0.db-svc:27017,mongo-1.db-svc:27017,mongo-2.db-svc:27017,"
+        - name: "MONGODB_DATABASE"
+          value: "weblog"
+        - name: "MONGODB_REPLICASET"
+          value: "rs0"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+  namespace: default
+  labels:
+    app: weblog
+    type: application
+spec:
+  selector:
+    app: weblog
+    type: application
+  ports:
+  - port: 3000
+    targetPort: 3000

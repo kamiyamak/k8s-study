@@ -1,0 +1,5 @@
+docker run \
+    -e APPLICATION_HOST=host.docker.internal:57718 \
+    -p 8080:80 \
+    -d \
+    weblog-web:v1.0.0 

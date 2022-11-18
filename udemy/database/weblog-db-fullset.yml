@@ -114,7 +114,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mongodb
-        image: weblog-db:v1.0.0
+        image: weblog-db:v1.0.1
         imagePullPolicy: Never
         args:
         - "mongod"
@@ -136,6 +136,8 @@ spec:
               key: root_password
         - name: "MONGO_INITDB_DATABASE"
           value: "admin"
+        - name: "SERVICE_NAME"
+          value: "db-svc"
         volumeMounts:
         - mountPath: /data/db
           name: storage
